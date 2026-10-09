@@ -1,0 +1,6 @@
+{
+  "name": "AetherSpend - 2026 Glassmorphic Expense Tracker",
+  "description": "Ultra-modern 2026 glassmorphic financial expense tracker with analytics, budget management, cash flow forecasting, and in-memory ledger.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
