@@ -1,153 +1,40 @@
 # AetherSpend — 2026 Glassmorphic Expense Tracker
 
-[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.4-brightgreen?logo=springboot)
+![React](https://img.shields.io/badge/React-19.0-blue?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-v4-38bdf8?logo=tailwindcss)
+![Architecture](https://img.shields.io/badge/Database-Zero%20DB%20(In--Memory)-purple)
+![License](https://img.shields.io/badge/License-Apache%202.0-lightgrey)
 
-An ultra-modern, standalone financial management application designed with **2026 glassmorphic aesthetics**, real-time reactive SVG financial visualizations, and a clean **$0.00 initial baseline**. Enter income and expenses to watch graphs, budget capacity bars, and financial KPIs calculate and animate in real time.
-
----
-
-## ✨ Features
-
-- **💎 2026 Glassmorphism Design System**: Frosted crystal glass acrylics (`backdrop-blur-2xl`), luminous specular highlights, subtle mesh glow, and strict zero-pill typographic discipline.
-- **📈 Live Reactive Cash Flow Trajectory**:
-  - Interactive SVG financial trend wave and side-by-side monthly comparison bars.
-  - Starts at a pure **$0.00 clean slate** and reactively plots curves as you input transactions.
-  - Hover tooltips detailing exact inflow, outflow, and net cash reserve.
-- **🍩 Interactive Expense Allocation Doughnut**:
-  - Dynamic SVG doughnut visualizer that slices categories by spend percentage.
-  - Central readout with active slice hover inspection and dollar amounts.
-- **💳 High-Density Transaction Ledger**:
-  - Full-text search for merchants, categories, or tax notes.
-  - Multi-facet filtering by transaction type (All, Expense, Income) and category.
-  - Sorting by date and amount with tabular numerical figures (`tabular-nums font-mono`).
-  - Full CRUD capabilities (Add, Edit, Delete).
-- **🎯 Category Budget Allocation Manager**:
-  - Configurable category caps (Housing, Food & Dining, Cloud & Tech, Transit, Health, etc.).
-  - Real-time visual progress bars with capacity warnings (Safe, Approaching Cap, Over-Budget).
-  - Inline cap adjustments with instant recalculation.
-- **🔮 Analytics & Forecasting Engine**:
-  - Month-end outflow projections and daily capital burn velocity (`$/day`).
-  - Structural budget breakdown: Essential fixed outflows vs. Discretionary lifestyle spending.
-  - Merchant ranking ordered by cumulative expenditure.
-- **⚡ Standalone In-Memory Architecture**:
-  - Zero external database setup or configuration required.
-  - Instant local persistence (`localStorage`) — fast, private, and runs entirely in your browser.
-  - One-click **Reset to $0** control to wipe and restart with a clean slate at any time.
+> **AetherSpend** is a modern, high-performance financial expense tracker application engineered with **2026 glassmorphic aesthetics** and powered by a standalone **Java Spring Boot 3.3 (Java 21) REST API** using an in-memory concurrent store (zero database setup required).
 
 ---
 
-## 🛠️ Tech Stack
+## 🌟 Key Features
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [React 19](https://react.dev/) |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) |
-| **Build Tool** | [Vite](https://vitejs.dev/) |
-| **Icons** | [Lucide React](https://lucide.dev/) |
-| **Typography** | Plus Jakarta Sans & JetBrains Mono (Tabular Numerals) |
-
----
-
-## 📂 Project Structure
-
-```text
-├── index.html                   # HTML entry point with fonts & metadata
-├── package.json                 # Project dependencies & scripts
-├── tsconfig.json                # TypeScript compiler configuration
-├── vite.config.ts               # Vite configuration with Tailwind CSS plugin
-├── metadata.json                # Application metadata
-└── src/
-    ├── main.tsx                 # React DOM mount point
-    ├── App.tsx                  # Core application shell & state orchestration
-    ├── index.css                # Tailwind CSS v4 & glassmorphism theme utilities
-    ├── types/
-    │   └── expense.ts           # TypeScript models (Transaction, Category, Budget)
-    ├── data/
-    │   └── defaultData.ts       # $0.00 baseline categories & empty state seeds
-    └── components/
-        ├── TopBar.tsx           # 3-zone glassmorphic header with + New Transaction CTA
-        ├── MetricCards.tsx      # KPI cards (Net Balance, Inflow, Outflow, Savings Rate)
-        ├── CashFlowChart.tsx    # Interactive SVG Trend Wave & Monthly Bar visualizer
-        ├── CategoryDoughnut.tsx # Interactive Category Allocation Doughnut chart
-        ├── TransactionLedger.tsx# High-density data grid with search, filter, and pagination
-        ├── TransactionModal.tsx # Glassmorphic modal form for Add/Edit transaction
-        ├── BudgetManager.tsx    # Category spending limits & capacity progress bars
-        └── AnalyticsView.tsx    # Predictive forecasting & spending velocity breakdown
-```
+- **2026 Glassmorphic Design System**:
+  - Deep dark canvas (`#080B11`) with frosted crystal glass panels (`backdrop-blur-2xl`), subtle specular light borders, and ambient light spheres.
+  - Zero-pill typographic metadata hierarchy using clean dividers (`·`, `/`).
+  - Monospace tabular figures (`tabular-nums font-mono`) for all financial metrics, timestamps, and amounts.
+- **$0.00 Clean-Slate Initial State**:
+  - All accounts, categories, and metrics start at `$0.00`.
+  - Enter custom income and expenses and watch the graphs scale and animate dynamically in real time.
+- **Interactive Cash Flow Trajectory**:
+  - Switch between **Trend Wave** (smooth SVG gradient curves) and **Monthly Bars** (side-by-side inflows vs. outflows).
+  - Hover tooltips inspect precise income, expense, and net values for each billing cycle.
+- **Category Allocation Doughnut**:
+  - Interactive SVG doughnut chart breaking down spending categories with slice highlights, percentages, and dollar totals.
+- **High-Density Transaction Ledger**:
+  - Multi-facet filters (`All`, `Expenses`, `Income`, Category filter), real-time search, sorting by date or amount, pagination, and modal Add/Edit/Delete actions.
+- **Monthly Budget Manager**:
+  - Category spending caps, dynamic percentage progress bars, caution/over-budget warnings, and inline cap updates.
+- **Predictive Analytics & Forecasting**:
+  - Projected month-end spend, daily capital burn pace, essential vs. discretionary ratio, and top outflow merchants.
+- **Zero-Database Architecture**:
+  - Runs completely standalone with thread-safe `ConcurrentHashMap` storage and Java Stream aggregations. Zero database installation, zero connection strings, and zero configuration friction.
 
 ---
 
-## 🚀 Getting Started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (version 18 or higher recommended)
-- `npm` or `pnpm` or `yarn`
-
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/aetherspend-expense-tracker.git
-   cd aetherspend-expense-tracker
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Start the local development server**:
-   ```bash
-   npm run dev
-   ```
-
-4. **Open your browser**:
-   Navigate to `http://localhost:3000` (or the URL displayed in your terminal).
-
----
-
-## 📖 How to Use
-
-1. **Start with Clean Slate**:
-   - The app opens with **all values initialized to $0.00**.
-2. **Log Transactions**:
-   - Click **`+ New Transaction`** in the top navigation or use the quick test buttons.
-   - Choose **Income** (e.g. Salary, Freelance) or **Expense** (e.g. Dining, Rent, Cloud).
-   - Enter an amount, date, and payment method.
-3. **Observe the Live Graphs**:
-   - Watch the **Cash Flow Wave** immediately plot inflows and outflows.
-   - Hover over points to view exact dates, net amounts, and deltas.
-   - Check the **Category Doughnut** to see proportional percentages auto-calculate.
-4. **Manage Budgets**:
-   - Go to the **Budgets** tab, click **Set Limit** on any category, and set a monthly cap.
-   - The capacity bar will dynamically reflect your current utilization.
-5. **Reset Anytime**:
-   - Click **Reset all to $0** in the dashboard or footer to clear all data and start fresh.
-
----
-
-## 📦 Production Build
-
-To create an optimized production build:
-
-```bash
-npm run build
-```
-
-To preview the production build locally:
-
-```bash
-npm run preview
-```
-
----
-
-## 📄 License
-
-This project is open-source and licensed under the [MIT License](LICENSE).
+## 📐 Architecture Overview
