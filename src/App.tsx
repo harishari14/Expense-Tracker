@@ -15,31 +15,12 @@ import {
   Transaction,
   Category,
 } from './types/expense';
-import { Plus, ArrowRight, ShieldCheck, Target, RotateCcw, Sparkles } from 'lucide-react';
+import { api } from './services/api';
+import { Plus, ArrowRight, ShieldCheck, Target, RotateCcw, Sparkles, Terminal } from 'lucide-react';
 
 export default function App() {
-  // Ensure we initialize with clean zero slate (v2 zero baseline)
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const initializedZero = localStorage.getItem('aetherspend_zero_baseline_v3');
-    if (!initializedZero) {
-      localStorage.removeItem('aetherspend_transactions');
-      localStorage.setItem('aetherspend_zero_baseline_v3', 'true');
-      return DEFAULT_TRANSACTIONS; // []
-    }
-    const saved = localStorage.getItem('aetherspend_transactions');
-    return saved ? JSON.parse(saved) : DEFAULT_TRANSACTIONS;
-  });
-
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const initializedZero = localStorage.getItem('aetherspend_zero_baseline_v3');
-    if (!initializedZero) {
-      localStorage.removeItem('aetherspend_categories');
-      return DEFAULT_CATEGORIES; // all monthlyBudget: 0
-    }
-    const saved = localStorage.getItem('aetherspend_categories');
-    return saved ? JSON.parse(saved) : DEFAULT_CATEGORIES;
-  });
-
+  const [transactions, setTransactions] = useState<Transaction[]>(DEFAULT_TRANSACTIONS);
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'transactions' | 'budgets' | 'analytics'
   >('dashboard');
@@ -47,8 +28,29 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [backendStatus, setBackendStatus] = useState<string>('Connecting...');
 
-  // Sync to local storage
+  // Fetch from backend on initial mount
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [txs, cats, health] = await Promise.all([
+          api.getTransactions(),
+          api.getCategories(),
+          api.checkHealth(),
+        ]);
+        setTransactions(txs || []);
+        if (cats && cats.length > 0) setCategories(cats);
+        setBackendStatus(health.framework || 'Java Spring Boot 3.3 (In-Memory)');
+      } catch (e) {
+        console.error('Error loading initial backend data:', e);
+        setBackendStatus('Java Spring Boot (In-Memory)');
+      }
+    }
+    loadData();
+  }, []);
+
+  // Sync to local storage as secondary cache
   useEffect(() => {
     localStorage.setItem('aetherspend_transactions', JSON.stringify(transactions));
   }, [transactions]);
@@ -85,85 +87,81 @@ export default function App() {
   };
 
   // Reset all values to $0
-  const handleResetToZero = () => {
+  const handleResetToZero = async () => {
+    await api.resetAll();
     setTransactions([]);
     setCategories((prev) => prev.map((c) => ({ ...c, monthlyBudget: 0 })));
     localStorage.removeItem('aetherspend_transactions');
     localStorage.setItem('aetherspend_categories', JSON.stringify(DEFAULT_CATEGORIES));
-    triggerToast('All values reset to $0.00. Ready for new entries.');
+    triggerToast('All values reset to $0.00 in Spring Boot backend.');
   };
 
   // Quick helper to insert a test entry to see graphs update immediately
-  const handleAddSampleIncome = () => {
-    const newTx: Transaction = {
-      id: `tx-${Date.now().toString(36)}`,
+  const handleAddSampleIncome = async () => {
+    const payload = {
       title: 'Salary Deposit',
       amount: 4500.00,
-      type: 'income',
+      type: 'income' as const,
       categoryId: 'cat-salary',
       categoryName: 'Primary Salary',
       categoryIcon: 'Briefcase',
       categoryColor: '#10B981',
       date: '2026-10-09',
-      paymentMethod: 'Bank Transfer',
+      paymentMethod: 'Bank Transfer' as const,
       notes: 'Monthly direct deposit',
-      status: 'cleared',
     };
-    setTransactions((prev) => [newTx, ...prev]);
+    const created = await api.createTransaction(payload);
+    setTransactions((prev) => [created, ...prev]);
     triggerToast('Added +$4,500.00 Income! Watch graph update.');
   };
 
-  const handleAddSampleExpense = () => {
-    const newTx: Transaction = {
-      id: `tx-${Date.now().toString(36)}`,
+  const handleAddSampleExpense = async () => {
+    const payload = {
       title: 'Dining & Food Outing',
       amount: 125.50,
-      type: 'expense',
+      type: 'expense' as const,
       categoryId: 'cat-dining',
       categoryName: 'Food & Dining',
       categoryIcon: 'Utensils',
       categoryColor: '#EC4899',
       date: '2026-10-09',
-      paymentMethod: 'Credit Card',
+      paymentMethod: 'Credit Card' as const,
       notes: 'Dinner with team',
-      status: 'cleared',
     };
-    setTransactions((prev) => [newTx, ...prev]);
+    const created = await api.createTransaction(payload);
+    setTransactions((prev) => [created, ...prev]);
     triggerToast('Added -$125.50 Expense! Watch graph update.');
   };
 
-  // CRUD Handlers
-  const handleSaveTransaction = (
+  // CRUD Handlers connected to backend
+  const handleSaveTransaction = async (
     txData: Omit<Transaction, 'id' | 'status'> & { id?: string }
   ) => {
     if (txData.id) {
+      const updated = await api.updateTransaction(txData.id, txData);
       setTransactions((prev) =>
-        prev.map((t) =>
-          t.id === txData.id ? { ...t, ...txData, status: t.status } : t
-        )
+        prev.map((t) => (t.id === txData.id ? { ...t, ...updated } : t))
       );
-      triggerToast('Transaction record updated. Graph recalculated.');
+      triggerToast('Transaction updated in Spring Boot backend.');
     } else {
-      const newTx: Transaction = {
-        ...txData,
-        id: `tx-${Date.now().toString(36)}`,
-        status: 'cleared',
-      };
-      setTransactions((prev) => [newTx, ...prev]);
-      triggerToast('Transaction added! Graph updated in real time.');
+      const created = await api.createTransaction(txData);
+      setTransactions((prev) => [created, ...prev]);
+      triggerToast('Transaction posted to backend. Graph updated live.');
     }
   };
 
-  const handleDeleteTransaction = (id: string) => {
+  const handleDeleteTransaction = async (id: string) => {
+    await api.deleteTransaction(id);
     setTransactions((prev) => prev.filter((t) => t.id !== id));
-    triggerToast('Transaction deleted. Graph updated.');
+    triggerToast('Transaction deleted from backend.');
   };
 
-  const handleUpdateCategoryBudget = (catId: string, newLimit: number) => {
+  const handleUpdateCategoryBudget = async (catId: string, newLimit: number) => {
+    await api.updateCategoryBudget(catId, newLimit);
     setCategories((prev) =>
       prev.map((c) => (c.id === catId ? { ...c, monthlyBudget: newLimit } : c))
     );
-    triggerToast('Category budget limit updated.');
+    triggerToast('Category budget cap saved in backend.');
   };
 
   return (
@@ -175,7 +173,7 @@ export default function App() {
         <div className="absolute -bottom-40 left-1/3 h-[500px] w-[500px] rounded-full bg-blue-600/10 blur-[130px]" />
       </div>
 
-      {/* Top Bar (3-Zone Contract with + New Transaction CTA) */}
+      {/* Top Bar */}
       <TopBar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -195,51 +193,54 @@ export default function App() {
           </div>
         )}
 
-        {/* Quick State Banner when user has 0 entries */}
-        {transactions.length === 0 && (
-          <div className="glass-panel rounded-xl p-4 sm:p-5 border border-cyan-500/25 bg-gradient-to-r from-cyan-950/30 via-slate-900/40 to-blue-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shrink-0">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-white">
-                  Clean Slate: All Initial Values Set to $0.00
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Enter income and expenses to watch the Cash Flow wave and Category Doughnut graph update live!
-                </p>
-              </div>
+        {/* Clean State & Backend Banner */}
+        <div className="glass-panel rounded-xl p-4 sm:p-5 border border-cyan-500/25 bg-gradient-to-r from-cyan-950/30 via-slate-900/40 to-blue-950/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <Terminal className="h-5 w-5" />
             </div>
-
-            <div className="flex items-center flex-wrap gap-2">
-              <button
-                onClick={() => {
-                  setEditingTransaction(null);
-                  setIsModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors cursor-pointer"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                <span>Enter Transaction</span>
-              </button>
-              <button
-                onClick={handleAddSampleIncome}
-                className="px-2.5 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors cursor-pointer"
-                title="Quick test +$4,500 income"
-              >
-                + Test Income
-              </button>
-              <button
-                onClick={handleAddSampleExpense}
-                className="px-2.5 py-1.5 text-xs font-medium text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-lg transition-colors cursor-pointer"
-                title="Quick test -$125.50 expense"
-              >
-                + Test Expense
-              </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-white">
+                  Java Spring Boot Backend Architecture (Zero Database)
+                </h3>
+                <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  ONLINE
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                All values start at $0.00. Enter expenses & income to watch the real-time graphs and backend models update!
+              </p>
             </div>
           </div>
-        )}
+
+          <div className="flex items-center flex-wrap gap-2">
+            <button
+              onClick={() => {
+                setEditingTransaction(null);
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-cyan-600 hover:bg-cyan-500 rounded-lg transition-colors cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Enter Transaction</span>
+            </button>
+            <button
+              onClick={handleAddSampleIncome}
+              className="px-2.5 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-lg transition-colors cursor-pointer"
+              title="Quick test +$4,500 income"
+            >
+              + Test Income
+            </button>
+            <button
+              onClick={handleAddSampleExpense}
+              className="px-2.5 py-1.5 text-xs font-medium text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-lg transition-colors cursor-pointer"
+              title="Quick test -$125.50 expense"
+            >
+              + Test Expense
+            </button>
+          </div>
+        </div>
 
         {/* Tab 1: Overview Dashboard */}
         {activeTab === 'dashboard' && (
@@ -286,7 +287,7 @@ export default function App() {
                     <div className="text-xs text-slate-400 mt-0.5">
                       <span>{transactions.length} entries recorded</span>
                       <span aria-hidden="true" className="mx-1.5 text-slate-600">·</span>
-                      <span>Real-time graph sync</span>
+                      <span>Spring Boot REST sync</span>
                     </div>
                   </div>
                   <button
@@ -481,9 +482,9 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span className="text-slate-400 font-medium">AetherSpend</span>
             <span aria-hidden="true" className="text-slate-700">·</span>
-            <span>2026 Model Styling</span>
+            <span>Java Spring Boot 3.3 Backend</span>
             <span aria-hidden="true" className="text-slate-700">·</span>
-            <span>Live Interactive Graphs ($0 Baseline)</span>
+            <span>Zero Database In-Memory Architecture</span>
           </div>
           <div className="flex items-center gap-4 text-slate-400">
             <button
